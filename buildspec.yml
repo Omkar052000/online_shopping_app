@@ -4,7 +4,6 @@ env:
   parameter-store:
     DOCKER_REGISTRY_USERNAME: /myapp/docker-credentials/username
     DOCKER_REGISTRY_PASSWORD: /myapp/docker-credentials/password
-    DOCKER_REGISTRY_URL: /myapp/docker-registry/url
 
 phases:
   install:
@@ -13,11 +12,10 @@ phases:
     commands:
       - node -v
       - npm -v
-      - npm config set registry https://registry.npmjs.org/
 
   pre_build:
     commands:
-      - echo Logging in to Docker Registry...
+      - echo "Logging in to Docker Hub"
       - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USERNAME" --password-stdin
       - IMAGE_REPO_NAME="online-shopping-app"
       - IMAGE_NAME="$DOCKER_REGISTRY_USERNAME/$IMAGE_REPO_NAME"
@@ -25,29 +23,12 @@ phases:
 
   build:
     commands:
-      - echo Build started on `date`
-      - echo Packaging application into a zip file...
-      - zip -r online-shop-app.zip * .[^.]* # Include all files and directories, including hidden files
-      - echo Building the Docker image...
+      - echo "Build started on $(date)"
       - docker build -t $IMAGE_NAME:latest .
 
   post_build:
-  commands:
-    - echo "Build completed on $(date)"
-    - echo "IMAGE_NAME=$IMAGE_NAME"
-    - docker images
-    - docker logout || true
-    - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USERNAME" --password-stdin
-    - docker push $IMAGE_NAME:latest
-
-artifacts:
-  files:
-    - '**/*'
-  base-directory: '.'
-  discard-paths: no
-  exclude-patterns:
-    - 'node_modules/**/*'
-    - '.git/**/*'
-    - '.gitignore'
-    - 'README.md'
-    - 'package-lock.json'
+    commands:
+      - echo "Build completed on $(date)"
+      - docker images
+      - echo "Pushing image..."
+      - docker push $IMAGE_NAME:latest
