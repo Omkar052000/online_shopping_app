@@ -33,12 +33,12 @@ phases:
 
   post_build:
   commands:
-    - set -x
+    - echo "Build completed on $(date)"
     - echo "IMAGE_NAME=$IMAGE_NAME"
     - docker images
     - docker logout || true
     - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USERNAME" --password-stdin
-    - docker push --progress=plain $IMAGE_NAME:latest
+    - docker push $IMAGE_NAME:latest
 
 artifacts:
   files:
