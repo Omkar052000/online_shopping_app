@@ -32,15 +32,13 @@ phases:
       - docker build -t $IMAGE_NAME:latest .
 
   post_build:
-    commands:
-      - echo Build completed on `date`
-      - echo Pushing the Docker image...
-      - docker push $IMAGE_NAME:latest
-      - echo Uploading zip file to S3 root location...
-      - aws s3 cp online-shop-app.zip s3://tws-online-shop-demo/online-shop-app/ # Upload zip file to the root of the bucket
-      - echo Writing image definitions file...
-      - printf '{"ImageURI":"%s", "Port":8000}' $IMAGE_NAME:latest > imageDefinitions.json
-      - cat imageDefinitions.json
+  commands:
+    - set -x
+    - echo "IMAGE_NAME=$IMAGE_NAME"
+    - docker images
+    - docker logout || true
+    - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USERNAME" --password-stdin
+    - docker push --progress=plain $IMAGE_NAME:latest
 
 artifacts:
   files:
